@@ -36,6 +36,13 @@ public class Program2 {
 		for(Department element: departmentDao.findAll()) {
 			System.out.println(element.toString());
 		}
+		
+		System.out.println("\n=== TEST 4: department update ===\n");
+
+		department = departmentDao.findById(19);
+		department.setName("maintenance");
+		departmentDao.update(department);
+		System.out.println("id of new department: " + department.getId());
 
 		sc.close();
 
