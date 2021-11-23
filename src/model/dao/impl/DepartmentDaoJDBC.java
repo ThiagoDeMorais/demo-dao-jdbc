@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
 
 import db.DB;
@@ -22,6 +23,7 @@ public class DepartmentDaoJDBC implements DepartmentDao {
 	@Override
 	public void insert(Department obj) {
 		PreparedStatement st = null;
+		ResultSet rs = null;
 		try {
 			st = conn.prepareStatement("INSERT INTO department\r\n" + "(Name)\r\n" + "VALUES\r\n" + "(?)",
 					Statement.RETURN_GENERATED_KEYS);
@@ -30,7 +32,7 @@ public class DepartmentDaoJDBC implements DepartmentDao {
 			int rowsAffected = st.executeUpdate();
 
 			if (rowsAffected > 0) {
-				ResultSet rs = st.getGeneratedKeys();
+				rs = st.getGeneratedKeys();
 				if (rs.next()) {
 					int id = rs.getInt(1);
 					obj.setId(id);
@@ -41,6 +43,7 @@ public class DepartmentDaoJDBC implements DepartmentDao {
 			throw new DbException(e.getMessage());
 		} finally {
 			DB.closeStatement(st);
+			DB.closeResultSet(rs);
 		}
 
 	}
@@ -59,10 +62,11 @@ public class DepartmentDaoJDBC implements DepartmentDao {
 	@Override
 	public Department findById(Integer id) {
 		PreparedStatement st = null;
+		ResultSet rs = null;
 		try {
 			st = conn.prepareStatement("SELECT * FROM department WHERE Id = ?");
 			st.setInt(1, id);
-			ResultSet rs = st.executeQuery();
+			rs = st.executeQuery();
 			if (rs.next()) {
 				Department dep = instantiateDepartment(rs);
 				return dep;
@@ -73,13 +77,31 @@ public class DepartmentDaoJDBC implements DepartmentDao {
 			throw new DbException(e.getMessage());
 		} finally {
 			DB.closeStatement(st);
+			DB.closeResultSet(rs);
 		}
 	}
 
 	@Override
 	public List<Department> findAll() {
-		// TODO Auto-generated method stub
-		return null;
+		PreparedStatement st = null;
+		ResultSet rs = null;
+		try {
+			st = conn.prepareStatement("SELECT * FROM department ORDER BY Name");
+			
+			rs = st.executeQuery();
+			List<Department> departmentList = new ArrayList<>();
+			
+			while(rs.next()) {
+				departmentList.add(instantiateDepartment(rs));
+			}
+			return departmentList;
+
+		} catch (SQLException e) {
+			throw new DbException(e.getMessage());
+		} finally {
+			DB.closeStatement(st);
+			DB.closeResultSet(rs);
+		}
 	}
 
 	private Department instantiateDepartment(ResultSet rs) throws SQLException {
